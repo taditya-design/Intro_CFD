@@ -505,10 +505,10 @@ u(1:imax-1, jmax, 2) = Uinf; % Top wall horizontal velocity Uinf
 u(1:imax, jmax, 3) = 0; % Top wall vertical velocity 0
 
 % pressure boundary condition using linear extrapolation from interior
-u(imax, 1:jmax, 1) = 2*u(imax - 1, 1:jmax, 1) - u(imax - 2, 1:jmax, 1); % Right Wall
-u(1, 1:jmax, 1) = 2*u(2, 1:jmax, 1) - u(3, 1:jmax, 1); % Left Wall
-u(1:imax, jmax, 1) = 2*u(1:imax, jmax - 1, 1) - u(1:imax, jmax - 2, 1); % Top Wall
-u(1:imax, 1, 1) = 2*u(1:imax, 2, 1) - u(1:imax, 3, 1); % Bottom Wall
+u(imax, 2:jmax-1, 1) = 2*u(imax - 1, 2:jmax-1, 1) - u(imax - 2, 2:jmax - 1, 1); % Right Wall
+u(1, 2:jmax - 1, 1) = 2*u(2, 2:jmax - 1, 1) - u(3, 2:jmax - 1, 1); % Left Wall
+u(2:imax - 1, jmax, 1) = 2*u(2:imax - 1, jmax - 1, 1) - u(2:imax -1, jmax - 2, 1); % Top Wall
+u(2:imax - 1, 1, 1) = 2*u(2:imax - 1, 2, 1) - u(2:imax - 1, 3, 1); % Bottom Wall
 
 end
 %************************************************************************
