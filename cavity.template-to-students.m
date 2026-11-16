@@ -861,6 +861,34 @@ global u dt
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
 
+delta_t_max = 1.0e99;
+
+for j = 2:jmax
+    for i = 2:imax
+        % u, v velocities at this specific grid location
+        uvel = u(i, j, 2); % u velocity
+        vvel = u(i, j, 3); % v velocity
+        velmag = uvel^2 + vvel^2; % velocity squared
+        
+        % Beta and eigenvalue calculations
+        beta = max(velmag,rkappa*vel2ref); % beta value calculation
+        lambda_x = (1/2)*(abs(uvel) + sqrt(uvel^2 + 4*beta));
+        lambda_y = (1/2)*(abs(vvel) + sqrt(vvel^2 + 4*beta));
+
+        % take max eigenvalue as fastest speed
+        lambda_max = max(lambda_x,lambda_y);
+        
+        % calculate speed
+        dtconv = min(dx,dy)/(lambda_max);
+        
+        % set time step for each grid space
+        dt(i,j) = cfl*min(dtconv,dtvisc);
+        
+        % calculate the minimum time step based on 
+        dtmin = min(dt(i,j),dtmin);
+
+    end
+end
 
 
 
