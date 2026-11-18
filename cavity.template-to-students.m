@@ -927,8 +927,47 @@ global artviscx artviscy
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
 
+% 4th-order artificial viscosity on pressure (Jameson-style)
+% S = - ( |λx|_max * C(4) * Δx^3 / β² ) * ∂⁴p/∂x⁴
+% - ( |λy|_max * C(4) * Δy^3 / β² ) * ∂⁴p/∂y⁴
+global two four six half
+global imax jmax lim rho dx dy Cx Cy Cx2 Cy2 fsmall vel2ref rkappa
+global u
+global artviscx artviscy
+for j = 3:jmax-2
+for i = 3:imax-2
+% Local velocity squared and beta^2
+uvel2 = u(i,j,2)*u(i,j,2) + u(i,j,3)*u(i,j,3);
+beta2 = max(uvel2, rkappa*vel2ref);
+% Max eigenvalues
+lambda_x = (1/2)*(abs(u(i,j,2)) + sqrt(u(i,j,2)*u(i,j,2) + 4*beta2));
+lambda_y = (1/2)*(abs(u(i,j,3)) + sqrt(u(i,j,3)*u(i,j,3) + 4*beta2));
+% 4th derivatives of pressure (central differences)
+% ∂⁴p/∂x⁴ ≈ (p_{i+2} - 4 p_{i+1} + 6 p_i - 4 p_{i-1} + p_{i-2}) / dx^4
+d4pdx4 = ( u(i+2,j,1) - four*u(i+1,j,1) + six*u(i,j,1) - four*u(i-1,j,1) + u(i-2,j,1) ) / (dx^4);
+d4pdy4 = ( u(i,j+2,1) - four*u(i,j+1,1) + six*u(i,j,1) - four*u(i,j-1,1) + u(i,j-2,1) ) / (dy^4);
+% Artificial viscosity terms (note the sign and the β² in denominator)
+artviscx(i,j) = - (lambda_x * Cx * (dx^3) / beta2) * d4pdx4;
+artviscy(i,j) = - (lambda_y * Cy * (dy^3) / beta2) * d4pdy4;
+end
 
+end
 
+% Linearly Extrapolate artificial viscosity near boundaries (where 5-point stencil is incomplete)
+for j = 1:jmax
+    % left near wall
+    artviscx(2,j) = 2 * artviscx(3,j) - artviscx(4,j);
+    % right near wall
+    artviscx(imax-1,j) = 2 * artviscx(imax-2,j) - artviscx(imax-3,j);
+end
+
+for i = 1:imax
+    % bottom near wall
+    artviscy(i,2) = 2*artviscy(i,3) - artviscy(i,4);
+
+    % top near wall
+    artviscy(i,jmax-1) = 2*artviscy(i,jmax-2) - artviscy(i,jmax-3);
+end
 
 end
 %************************************************************************
