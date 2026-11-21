@@ -1149,7 +1149,34 @@ global u uold artviscx artviscy dt s
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
 
+for j = 2:jmax-1
+    for i = 2:imax-1
+        % All derivatives evaluated with uold (Jacobi)
+        dpdx = (uold(i+1,j,1) - uold(i-1,j,1)) / (two*dx);
+        dudx = (uold(i+1,j,2) - uold(i-1,j,2)) / (two*dx);
+        dvdx = (uold(i+1,j,3) - uold(i-1,j,3)) / (two*dx);
+        dpdy = (uold(i,j+1,1) - uold(i,j-1,1)) / (two*dy);
+        dudy = (uold(i,j+1,2) - uold(i,j-1,2)) / (two*dy);
+        dvdy = (uold(i,j+1,3) - uold(i,j-1,3)) / (two*dy);
 
+        d2udx2 = (uold(i+1,j,2) - two*uold(i,j,2) + uold(i-1,j,2)) / (dx*dx);
+        d2udy2 = (uold(i,j+1,2) - two*uold(i,j,2) + uold(i,j-1,2)) / (dy*dy);
+        d2vdx2 = (uold(i+1,j,3) - two*uold(i,j,3) + uold(i-1,j,3)) / (dx*dx);
+        d2vdy2 = (uold(i,j+1,3) - two*uold(i,j,3) + uold(i,j-1,3)) / (dy*dy);
+
+        uvel2 = uold(i,j,2)*uold(i,j,2) + uold(i,j,3)*uold(i,j,3);
+        beta2 = max(uvel2, rkappa*vel2ref);
+
+        res_cont = rho*(dudx + dvdy) - (artviscx(i,j) + artviscy(i,j)) - s(i,j,1);
+        res_xmom = rho*uold(i,j,2)*dudx + rho*uold(i,j,3)*dudy + dpdx - rmu*(d2udx2 + d2udy2) - s(i,j,2);
+        res_ymom = rho*uold(i,j,2)*dvdx + rho*uold(i,j,3)*dvdy + dpdy - rmu*(d2vdx2 + d2vdy2) - s(i,j,3);
+
+        % Update using old values only
+        u(i,j,1) = uold(i,j,1) - dt(i,j) * beta2 * res_cont;
+        u(i,j,2) = uold(i,j,2) - dt(i,j) * rhoinv * res_xmom;
+        u(i,j,3) = uold(i,j,3) - dt(i,j) * rhoinv * res_ymom;
+    end
+end
 
 
 
