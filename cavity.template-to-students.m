@@ -1004,7 +1004,42 @@ global artviscx artviscy dt s u
 % !************************************************************** */
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
+for j = 2:jmax-1
+    for i = 2:imax-1
+        %----- First derivatives (central) -----
+        dpdx = (u(i+1,j,1) - u(i-1,j,1)) / (two*dx);
+        dudx = (u(i+1,j,2) - u(i-1,j,2)) / (two*dx);
+        dvdx = (u(i+1,j,3) - u(i-1,j,3)) / (two*dx);
+        dpdy = (u(i,j+1,1) - u(i,j-1,1)) / (two*dy);
+        dudy = (u(i,j+1,2) - u(i,j-1,2)) / (two*dy);
+        dvdy = (u(i,j+1,3) - u(i,j-1,3)) / (two*dy);
 
+        %----- Second derivatives (central) -----
+        d2udx2 = (u(i+1,j,2) - two*u(i,j,2) + u(i-1,j,2)) / (dx*dx);
+        d2udy2 = (u(i,j+1,2) - two*u(i,j,2) + u(i,j-1,2)) / (dy*dy);
+        d2vdx2 = (u(i+1,j,3) - two*u(i,j,3) + u(i-1,j,3)) / (dx*dx);
+        d2vdy2 = (u(i,j+1,3) - two*u(i,j,3) + u(i,j-1,3)) / (dy*dy);
+
+        %----- Preconditioning -----
+        uvel2 = u(i,j,2)*u(i,j,2) + u(i,j,3)*u(i,j,3);
+        beta2 = max(uvel2, rkappa*vel2ref);
+        
+        %----- Continuity residual (preconditioned) -----
+        % (1/β²) ∂p/∂τ + ρ(∂u/∂x + ∂v/∂y) - S_artvisc - s_mass = 0
+        res_cont = rho*(dudx + dvdy) - (artviscx(i,j) + artviscy(i,j)) - s(i,j,1);
+
+        %----- x-momentum residual -----
+        res_xmom = rho*u(i,j,2)*dudx + rho*u(i,j,3)*dudy + dpdx - rmu*(d2udx2 + d2udy2) - s(i,j,2);
+
+        %----- y-momentum residual -----
+        res_ymom = rho*u(i,j,2)*dvdx + rho*u(i,j,3)*dvdy + dpdy - rmu*(d2vdx2 + d2vdy2) - s(i,j,3);
+
+        %----- Explicit update (forward sweep uses newest values) -----
+        u(i,j,1) = u(i,j,1) - dt(i,j) * beta2 * res_cont; % pressure (preconditioned)
+        u(i,j,2) = u(i,j,2) - dt(i,j) * rhoinv * res_xmom; % u-velocity
+        u(i,j,3) = u(i,j,3) - dt(i,j) * rhoinv * res_ymom; % v-velocity
+    end
+end
 
 
 
