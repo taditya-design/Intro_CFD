@@ -1230,8 +1230,8 @@ function [res, resinit, conv] = check_iterative_convergence...
 % k                        % k index (# of equations)
 
 global zero one
-global imax jmax neq fsmall
-global u uold dt fp1
+global imax jmax neq fsmall 
+global u uold dt fp1 
 
 % Compute iterative residuals to monitor iterative convergence
 
@@ -1300,7 +1300,7 @@ function Discretization_Error_Norms(rL1norm, rL2norm, rLinfnorm)
 % y        % Temporary variable for y location
 % DE   	% Discretization error (absolute value)
 
-global zero imax jmax neq imms xmax xmin ymax ymin u
+global zero imax jmax neq imms xmax xmin ymax ymin u ummsArray
 
 if imms==1
 
@@ -1308,9 +1308,40 @@ if imms==1
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
 
+% Compute L1, L2 and L∞ norms of the discretization error
+% (only meaningful when imms == 1)
+
+rL1norm(:) = zero;
+rL2norm(:) = zero;
+rLinfnorm(:) = zero;
+for k = 1:neq
+sumL1 = zero;
+sumL2 = zero;
+maxLinf = zero;
+for j = 1:jmax
+for i = 1:imax
+DE = abs( u(i,j,k) - ummsArray(i,j,k) );
+sumL1 = sumL1 + DE;
+sumL2 = sumL2 + DE*DE;
+if DE > maxLinf
+maxLinf = DE;
+end
+end
+end
+rL1norm(k) = sumL1 / (imax*jmax);
+rL2norm(k) = sqrt( sumL2 / (imax*jmax) );
+rLinfnorm(k) = maxLinf;
+end
+% Print the norms
+fprintf('===== Discretization Error Norms (MMS) =====\n');
+fprintf('Variable L1-norm L2-norm Linf-norm\n');
+fprintf('p %e %e %e\n', rL1norm(1), rL2norm(1), rLinfnorm(1));
+fprintf('u %e %e %e\n', rL1norm(2), rL2norm(2), rLinfnorm(2));
+fprintf('v %e %e %e\n', rL1norm(3), rL2norm(3), rLinfnorm(3));
+fprintf('============================================');
+end
 
 
 
 end
 
-end
