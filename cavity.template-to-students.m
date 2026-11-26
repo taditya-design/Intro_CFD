@@ -1229,7 +1229,7 @@ function [res, resinit, conv] = check_iterative_convergence...
 % j                        % j index (y direction)
 % k                        % k index (# of equations)
 
-global zero
+global zero one
 global imax jmax neq fsmall
 global u uold dt fp1
 
@@ -1239,20 +1239,46 @@ global u uold dt fp1
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
 
-
-
-
-
+% This is equivalent to the steady residual for an explicit scheme
+sum_res = zeros(neq,1);
+for j = 2:jmax-1
+for i = 2:imax-1
+for k = 1:neq
+% Change over the time step is a measure of the residual
+delta = (u(i,j,k) - uold(i,j,k)) / max(dt(i,j), fsmall);
+sum_res(k) = sum_res(k) + delta*delta;
+end
+end
+end
+% L2 norm
+for k = 1:neq
+res(k) = sqrt( sum_res(k) / ((imax-2)*(jmax-2)) );
+end
+% Store initial residual on first call
+if n == ninit
+resinit = res;
+% Protect against zero initial residual
+for k = 1:neq
+if resinit(k) < fsmall
+resinit(k) = one;
+end
+end
+end
+% Relative residuals
+res_rel = zeros(neq,1);
+for k = 1:neq
+res_rel(k) = res(k) / resinit(k);
+end
+% Convergence criterion: maximum of the three relative residuals
+conv = max(res_rel);
 % Write iterative residuals every 10 iterations
 if ( (mod(n,10)==0)||(n==ninit) )
-    fprintf(fp1, '%d %e %e %e %e\n',n, rtime, res(1), res(2), res(3) );
-    fprintf('%d   %e   %e   %e   %e   %e\n',n, rtime, dtmin, res(1), res(2), res(3) );
-    % Maybe a need to format this better
+fprintf(fp1, '%d %e %e %e %e',n, rtime, res_rel(1), res_rel(2), res_rel(3) );
+fprintf('%d %e %e %e %e %e',n, rtime, dtmin, res_rel(1), res_rel(2), res_rel(3) );
 end
-
 % Write header for iterative residuals every 200 iterations
 if ( (mod(n,200)==0)||(n==ninit) )
-    fprintf('Iter. Time (s)   dt (s)      Continuity    x-Momentum    y-Momentum\n');
+fprintf('Iter. Time (s) dt (s) Continuity x-Momentum y-Momentum');
 end
 
 end
