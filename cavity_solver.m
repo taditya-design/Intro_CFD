@@ -56,7 +56,7 @@ six    = 6.0;
 
 nmax = 500000;        % Maximum number of iterations
 iterout = 5000;       % Number of time steps between solution output
-imms = 1;             % Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
+imms = 0;             % Manufactured solution flag: = 1 for manuf. sol., = 0 otherwise
 isgs = 1;             % Symmetric Gauss-Seidel  flag: = 1 for SGS, = 0 for point Jacobi
 irstr = 0;            % Restart flag: = 1 for restart (file 'restart.in', = 0 for initial run
 ipgorder = 0;         % Order of pressure gradient: 0 = 2nd, 1 = 3rd (not needed)
@@ -284,11 +284,11 @@ for n = ninit:nmax
 end  % ========== End Main Loop ==========
 
 if isConverged == 0
-    fprintf('Solution failed to converge in %d iterations!!!', nmax);
+    fprintf('Solution failed to converge in %d iterations!!!\n', nmax);
 end
 
 if isConverged == 1
-    fprintf('Solution converged in %d iterations!!!', n);
+    fprintf('Solution converged in %d iterations!!!\n', n);
 end
 
 % Calculate and Write Out Discretization Error Norms (will do this for MMS only)
@@ -407,7 +407,7 @@ if (irstr==0)   % Starting run from scratch
 else
     if (irstr==1)  % Restarting from previous run (file 'restart.in')
         fp4 = fopen('./restart.in','r'); % Note: 'restart.in' must exist!
-        if (fp4==NULL)
+        if (fp4==-1)
             fprintf('Error opening restart file. Stopping.\n');
             return;
         end
@@ -438,7 +438,7 @@ else
         fprintf('Restarting at iteration %d\n', ninit);
         fclose(fp4);
     else
-        printf('ERROR: irstr must equal 0 or 1!\n');
+        fprintf('ERROR: irstr must equal 0 or 1!\n');
         return;
     end
 end
@@ -469,7 +469,7 @@ else
     if (imms==1)
         bndrymms();
     else
-        printf('ERROR: imms must equal 0 or 1!\n');
+        fprintf('ERROR: imms must equal 0 or 1!\n');
         return;
     end
 end
@@ -501,7 +501,7 @@ u(imax, 1:jmax, 2) = 0; % Right wall horizontal velocity 0
 u(imax, 1:jmax, 3) = 0; % Right wall vertical velocity 0
 u(1:imax, 1, 2) = 0; % Bottom wall horizontal velocity 0
 u(1:imax, 1, 3) = 0; % Bottom wall vertical velocity 0
-u(1:imax-1, jmax, 2) = Uinf; % Top wall horizontal velocity Uinf
+u(1:imax-1, jmax, 2) = uinf; % Top wall horizontal velocity Uinf
 u(1:imax, jmax, 3) = 0; % Top wall vertical velocity 0
 
 % pressure boundary condition using linear extrapolation from interior
@@ -1273,12 +1273,12 @@ end
 conv = max(res_rel);
 % Write iterative residuals every 10 iterations
 if ( (mod(n,10)==0)||(n==ninit) )
-fprintf(fp1, '%d %e %e %e %e',n, rtime, res_rel(1), res_rel(2), res_rel(3) );
-fprintf('%d %e %e %e %e %e',n, rtime, dtmin, res_rel(1), res_rel(2), res_rel(3) );
+fprintf(fp1, '%d %e %e %e %e\n',n, rtime, res_rel(1), res_rel(2), res_rel(3) );
+fprintf('%d %e %e %e %e %e\n',n, rtime, dtmin, res_rel(1), res_rel(2), res_rel(3) );
 end
 % Write header for iterative residuals every 200 iterations
 if ( (mod(n,200)==0)||(n==ninit) )
-fprintf('Iter. Time (s) dt (s) Continuity x-Momentum y-Momentum');
+fprintf('Iter. Time (s) dt (s) Continuity x-Momentum y-Momentum\n');
 end
 
 end
@@ -1338,7 +1338,7 @@ fprintf('Variable L1-norm L2-norm Linf-norm\n');
 fprintf('p %e %e %e\n', rL1norm(1), rL2norm(1), rLinfnorm(1));
 fprintf('u %e %e %e\n', rL1norm(2), rL2norm(2), rLinfnorm(2));
 fprintf('v %e %e %e\n', rL1norm(3), rL2norm(3), rLinfnorm(3));
-fprintf('============================================');
+fprintf('============================================\n');
 end
 
 
