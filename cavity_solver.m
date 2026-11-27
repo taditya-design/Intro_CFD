@@ -62,11 +62,11 @@ irstr = 0;            % Restart flag: = 1 for restart (file 'restart.in', = 0 fo
 ipgorder = 0;         % Order of pressure gradient: 0 = 2nd, 1 = 3rd (not needed)
 lim = 1;              % variable to be used as the limiter sensor (= 1 for pressure)
 
-cfl  = 0.5;      % CFL number used to determine time step
+cfl  = 0.8;      % CFL number used to determine time step
 Cx = 0.01;     	% Parameter for 4th order artificial viscosity in x
 Cy = 0.01;      	% Parameter for 4th order artificial viscosity in y
 toler = 1.e-10; 	% Tolerance for iterative residual convergence
-rkappa = 0.1;   	% Time derivative preconditioning constant
+rkappa = 1.0;   	% Time derivative preconditioning constant
 Re = 100.0;      	% Reynolds number = rho*Uinf*L/rmu
 pinf = 0.801333844662; % Initial pressure (N/m^2) -> from MMS value at cavity center
 uinf = 1.0;      % Lid velocity (m/s)
@@ -501,7 +501,7 @@ u(imax, 1:jmax, 2) = 0; % Right wall horizontal velocity 0
 u(imax, 1:jmax, 3) = 0; % Right wall vertical velocity 0
 u(1:imax, 1, 2) = 0; % Bottom wall horizontal velocity 0
 u(1:imax, 1, 3) = 0; % Bottom wall vertical velocity 0
-u(1:imax-1, jmax, 2) = uinf; % Top wall horizontal velocity Uinf
+u(2:imax-1, jmax, 2) = uinf; % Top wall horizontal velocity Uinf
 u(1:imax, jmax, 3) = 0; % Top wall vertical velocity 0
 
 % pressure boundary condition using linear extrapolation from interior
@@ -861,7 +861,9 @@ global u dt
 % !************ADD CODING HERE FOR INTRO CFD STUDENTS************ */
 % !************************************************************** */
 
-delta_t_max = 1.0e99;
+dtmin = 1.0e99;
+nu = rmu/rho;
+dtvisc = dx*dy/(4*nu);
 
 for j = 2:jmax
     for i = 2:imax
